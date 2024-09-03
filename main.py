@@ -1,21 +1,14 @@
-import time
 import torch
-from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
+from fastapi import FastAPI
 from qwen_vl_utils import process_vision_info
-from modelscope import snapshot_download
+from qwen2_vl import model, processor
 
 
-model_dir = snapshot_download("qwen/Qwen2-VL-2B-Instruct")
-
-model = Qwen2VLForConditionalGeneration.from_pretrained(
-    model_dir, torch_dtype="auto", device_map="auto" if torch.backends.mps.is_available() else "cpu"
-)
+app = FastAPI()
 
 
-processor = AutoProcessor.from_pretrained(model_dir, min_pixels = 56 * 56, max_pixels = 28 * 28 * 128)
-
-
-def extract_info(image_url, prompt):
+@app.get("/api/image")
+def read_root(image_url: str, prompt: str = '描述一下这张图片', resized_width: int =200, resized_height: int =200):
     messages = [
         {
             "role": "user",
@@ -23,8 +16,8 @@ def extract_info(image_url, prompt):
                 {
                     "type": "image",
                     "image": image_url,
-                    "resized_height": 200,
-                    "resized_width": 200,
+                    "resized_width": resized_width,
+                    "resized_height": resized_height,
                 },
                 {"type": "text", "text": prompt},
             ],
@@ -46,25 +39,10 @@ def extract_info(image_url, prompt):
 
     generated_ids = model.generate(**inputs, max_new_tokens=128)
     generated_ids_trimmed = [
-        out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
     ]
     output_text = processor.batch_decode(
         generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
     )
-    print(output_text)
-
-
-if __name__ == '__main__':
-    image_url = 'https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg'
-    prompt = '描述一下这张图片'
-    t1 = time.time()
-    extract_info(image_url, prompt)
-    t2 = time.time()
-    print(t2-t1)
-    extract_info(image_url, prompt)
-    t3 = time.time()
-    print(t3-t2)
-    extract_info(image_url, prompt)
-    t4 = time.time()
-    print(t4-t3)
-
+    print(f'返回结果: {output_text}')
+    return {"output": output_text}
