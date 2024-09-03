@@ -19,7 +19,7 @@ model = Qwen2VLForConditionalGeneration.from_pretrained(
 processor = AutoProcessor.from_pretrained(model_dir, min_pixels = MIN_PIXELS, max_pixels = MAX_PIXELS)
 
 
-def extract_info(image_url, prompt):
+def extract_info(image_url: str, prompt: str = '描述一下这张图片', resized_width: int =200, resized_height: int =200):
     messages = [
         {
             "role": "user",
@@ -27,8 +27,8 @@ def extract_info(image_url, prompt):
                 {
                     "type": "image",
                     "image": image_url,
-                    "resized_height": 200,
-                    "resized_width": 200,
+                    "resized_width": resized_width,
+                    "resized_height": resized_height,
                 },
                 {"type": "text", "text": prompt},
             ],
@@ -55,7 +55,8 @@ def extract_info(image_url, prompt):
     output_text = processor.batch_decode(
         generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
     )
-    print(output_text)
+    print(f'返回结果: {output_text}')
+    return output_text
 
 
 if __name__ == '__main__':
