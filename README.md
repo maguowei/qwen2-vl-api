@@ -1,5 +1,6 @@
 # qwen2-vl-api
 
+[![Docker Image CI](https://github.com/maguowei/qwen2-vl-api/actions/workflows/docker-image.yml/badge.svg)](https://github.com/maguowei/qwen2-vl-api/actions/workflows/docker-image.yml)
 
 ## Run
 
