@@ -5,7 +5,7 @@ ENV PIPENV_PYPI_MIRROR https://mirrors.aliyun.com/pypi/simple/
 RUN pip install -U pip && pip install poetry
 
 COPY pyproject.toml poetry.* ./
-RUN poetry install
+RUN poetry install --no-cache
 COPY . ./
 
 CMD ["poetry run fastapi run"]
